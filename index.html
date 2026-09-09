@@ -589,10 +589,10 @@
       {
         id: "flute", name: "长笛", english: "Flute", family: "木管",
         timbre: "像一束会飞的光，清亮、灵巧，高音尤其闪耀。",
-        tags: ["清亮", "轻盈", "高音"], bvid: "BV1XK411F7of",
-        videoTitle: "《阳光灿烂照天山》长笛独奏",
+        tags: ["清亮", "轻盈", "高音"], bvid: "BV1a7411a7MA",
+        videoTitle: "《钟》音乐节现场：长笛独奏",
         image: "https://pngimg.com/uploads/flute/flute_PNG13.png",
-        cover: "https://i2.hdslb.com/bfs/archive/f525ca9fb2fd86e606b3ae366cc664fd555c839c.jpg",
+        cover: "https://i0.hdslb.com/bfs/archive/8b6783c7783e9cf66b5d7b0bc81854ebfc92a68d.jpg",
         imageSource: "https://pngimg.com/image/56639"
       },
       {
@@ -616,10 +616,10 @@
       {
         id: "trumpet", name: "小号", english: "Trumpet", family: "铜管",
         timbre: "明亮、响亮、有穿透力，像庆典开场时的金色声音。",
-        tags: ["嘹亮", "明快", "有力量"], bvid: "BV1zE411D7aN",
-        videoTitle: "《我和我的祖国》小号独奏",
+        tags: ["嘹亮", "明快", "有力量"], bvid: "BV1Fm4y1a7ZD",
+        videoTitle: "《威尼斯狂欢节变奏曲》小号独奏",
         image: "https://images.rawpixel.com/dark_image_png_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI2LTA0L3NyLWltYWdlLTE1MDQyNi1ibTAwMy1zLTMxMC5wbmc.png",
-        cover: "https://i0.hdslb.com/bfs/archive/710fd08670297e8a9a1cebddbe78f6c91a490b5c.jpg",
+        cover: "https://i0.hdslb.com/bfs/archive/065ad2a70ab6323f8b0fd656f07ae145df5cb4bb.jpg",
         imageSource: "https://www.rawpixel.com/image/27200934/png-golden-trumpet-isolated-white-background"
       },
       {
@@ -766,7 +766,7 @@
               <div class="card-actions">
                 <button class="play-button" type="button" data-action="play" data-id="${instrument.id}">
                   <i data-lucide="play" fill="currentColor" aria-hidden="true"></i>
-                  <span>听一听</span>
+                  <span>在 B 站观看</span>
                 </button>
                 <a class="source-button" href="${instrument.imageSource}" target="_blank" rel="noopener" title="查看图片来源" aria-label="查看${instrument.name}图片来源">
                   <i data-lucide="image" aria-hidden="true"></i>
@@ -807,13 +807,8 @@
       if (!instrument) return;
       state.listened.add(id);
       saveState();
-      modalTitle.textContent = `${instrument.name} · ${instrument.videoTitle}`;
-      modalExternal.href = `https://www.bilibili.com/video/${instrument.bvid}/`;
-      videoFrame.innerHTML = `<iframe src="https://player.bilibili.com/player.html?bvid=${instrument.bvid}&page=1&high_quality=1&danmaku=0&autoplay=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${instrument.videoTitle}"></iframe>`;
-      modal.classList.add("is-open");
-      document.body.style.overflow = "hidden";
       render();
-      document.getElementById("modalClose").focus();
+      window.open(`https://www.bilibili.com/video/${instrument.bvid}/`, "_blank", "noopener");
     }
 
     function closeVideo() {
