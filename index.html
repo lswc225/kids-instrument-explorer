@@ -235,6 +235,11 @@
       transition: transform .28s ease;
     }
 
+    .image-wrap img.cover-image {
+      object-fit: cover;
+      padding: 0;
+    }
+
     .instrument-card:hover .image-wrap img { transform: scale(1.035); }
 
     .image-fallback {
@@ -741,7 +746,7 @@
         return `
           <article class="instrument-card ${isListened ? "is-listened" : ""}" data-id="${instrument.id}">
             <div class="image-wrap">
-              <img src="${instrument.image}" data-fallback="${instrument.cover}" alt="${instrument.name}的外形" loading="lazy" referrerpolicy="no-referrer">
+              <img class="cover-image" src="${instrument.cover}" data-fallback="${instrument.image}" alt="${instrument.name}独奏视频画面" loading="lazy" referrerpolicy="no-referrer">
               <div class="image-fallback">${instrument.name}</div>
               <span class="family-badge">${instrument.family}</span>
               <button class="favorite-button ${isFavorite ? "is-favorite" : ""}" type="button"
@@ -777,8 +782,8 @@
           if (!img.dataset.fallbackTried) {
             img.dataset.fallbackTried = "true";
             img.src = img.dataset.fallback;
-            img.style.objectFit = "cover";
-            img.style.padding = "0";
+            img.style.objectFit = "contain";
+            img.style.padding = "18px";
             return;
           }
           img.style.display = "none";
