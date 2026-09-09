@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>乐器声音探索册</title>
+  <link rel="preconnect" href="https://i0.hdslb.com">
+  <link rel="preconnect" href="https://player.bilibili.com">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --paper: #f7f5ef;
+      --surface: #fff;
+      --ink: #1f2528;
+      --muted: #687176;
+      --line: #d9ddd8;
+      --coral: #e95d4f;
+      --coral-dark: #b83c31;
+      --teal: #147d76;
+      --mustard: #c78a16;
+      --blue: #3d6f9b;
+      --shadow: 0 7px 22px rgba(27, 35, 38, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input { font: inherit; letter-spacing: 0; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .app-header {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      border-bottom: 1px solid rgba(31, 37, 40, .1);
+      background: rgba(247, 245, 239, .96);
+      backdrop-filter: blur(12px);
+    }
+
+    .header-inner, main, .footer-inner {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .header-inner {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand { min-width: 0; }
+
+    .brand h1 {
+      margin: 0;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: clamp(22px, 3vw, 31px);
+      font-weight: 700;
+      line-height: 1.08;
+    }
+
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 10px;
+    }
+
+    .progress-item {
+      min-width: 74px;
+      padding: 8px 10px;
+      border-left: 3px solid var(--teal);
+      background: var(--surface);
+    }
+
+    .progress-item:last-child { border-left-color: var(--coral); }
+
+    .progress-item strong {
+      display: block;
+      font: 700 19px/1 Georgia, serif;
+    }
+
+    .progress-item span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    main { padding: 26px 0 54px; }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 0;
+    }
+
+    .search-box svg {
+      position: absolute;
+      top: 50%;
+      left: 13px;
+      width: 18px;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .search-box input {
+      width: 100%;
+      height: 42px;
+      padding: 0 14px 0 41px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: none;
+      background: var(--surface);
+      color: var(--ink);
+    }
+
+    .search-box input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(20, 125, 118, .12);
+    }
+
+    .segments {
+      display: flex;
+      min-width: max-content;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+    }
+
+    .segment {
+      min-height: 34px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .segment[aria-pressed="true"] {
+      background: var(--ink);
+      color: white;
+    }
+
+    .favorite-filter {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .favorite-filter input {
+      width: 17px;
+      height: 17px;
+      margin: 0;
+      accent-color: var(--coral);
+    }
+
+    .result-line {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .result-line strong { color: var(--ink); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .instrument-card {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 1px 0 rgba(31, 37, 40, .04);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .instrument-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+
+    .image-wrap {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #ecebe5;
+    }
+
+    .image-wrap img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      padding: 18px;
+      transition: transform .28s ease;
+    }
+
+    .instrument-card:hover .image-wrap img { transform: scale(1.035); }
+
+    .image-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      color: var(--muted);
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .family-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .92);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 650;
+      box-shadow: 0 2px 8px rgba(31, 37, 40, .08);
+    }
+
+    .favorite-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(31, 37, 40, .15);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .94);
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 2px 9px rgba(31, 37, 40, .1);
+    }
+
+    .favorite-button svg { width: 19px; }
+
+    .favorite-button.is-favorite {
+      border-color: var(--coral);
+      background: var(--coral);
+      color: white;
+    }
+
+    .card-body { padding: 17px 17px 16px; }
+
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .title-row h2 {
+      min-width: 0;
+      margin: 0;
+      font: 700 22px/1.2 Georgia, "Songti SC", serif;
+    }
+
+    .english-name {
+      flex: 0 0 auto;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .timbre {
+      min-height: 44px;
+      margin: 11px 0 13px;
+      color: #485156;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .sound-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 28px;
+      margin-bottom: 15px;
+    }
+
+    .sound-tag {
+      padding: 4px 7px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr 38px;
+      gap: 8px;
+    }
+
+    .play-button, .source-button {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 5px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .play-button {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: white;
+      font-weight: 650;
+    }
+
+    .play-button:hover { background: #353d41; }
+    .play-button svg, .source-button svg { width: 17px; }
+
+    .source-button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--muted);
+    }
+
+    .source-button:hover { border-color: var(--teal); color: var(--teal); }
+
+    .listened-mark {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      margin-top: 11px;
+      color: var(--teal);
+      font-size: 12px;
+    }
+
+    .instrument-card.is-listened .listened-mark { display: flex; }
+    .listened-mark svg { width: 14px; }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      background: #ebe9e2;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 74px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer-inner a { color: var(--teal); }
+
+    .modal {
+      position: fixed;
+      z-index: 50;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(17, 23, 26, .76);
+    }
+
+    .modal.is-open { display: flex; }
+
+    .modal-panel {
+      width: min(980px, 100%);
+      overflow: hidden;
+      border-radius: 8px;
+      background: #111719;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .35);
+    }
+
+    .modal-head {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 10px 13px 10px 18px;
+      color: white;
+    }
+
+    .modal-title {
+      min-width: 0;
+      margin: 0;
+      overflow: hidden;
+      font-size: 16px;
+      font-weight: 650;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .modal-controls { display: flex; gap: 7px; }
+
+    .modal-link, .modal-close {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .25);
+      border-radius: 5px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+    }
+
+    .modal-link svg, .modal-close svg { width: 18px; }
+
+    .video-frame {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: #000;
+    }
+
+    .video-frame iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+    }
+
+    @media (max-width: 900px) {
+      .toolbar { grid-template-columns: 1fr auto; }
+      .segments { grid-column: 1 / -1; grid-row: 2; overflow-x: auto; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .header-inner, main, .footer-inner { width: min(100% - 22px, 1180px); }
+      .header-inner { min-height: 82px; }
+      .brand p { display: none; }
+      .progress { gap: 5px; }
+      .progress-item { min-width: 58px; padding: 7px 8px; }
+      .progress-item strong { font-size: 17px; }
+      main { padding-top: 16px; }
+      .toolbar { grid-template-columns: 1fr; }
+      .favorite-filter { grid-row: 2; }
+      .segments { grid-column: 1; grid-row: 3; }
+      .segment { padding: 0 10px; }
+      .grid { grid-template-columns: 1fr; gap: 14px; }
+      .image-wrap { aspect-ratio: 16 / 9; }
+      .footer-inner { min-height: 90px; flex-direction: column; justify-content: center; align-items: flex-start; }
+      .modal { padding: 10px; }
+      .modal-head { padding-left: 13px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1>乐器声音探索册</h1>
+        <p>12 种乐器 · 看外形 · 听独奏 · 留下喜欢</p>
+      </div>
+      <div class="progress" aria-label="探索进度">
+        <div class="progress-item">
+          <strong id="listenedCount">0/12</strong>
+          <span>已试听</span>
+        </div>
+        <div class="progress-item">
+          <strong id="favoriteCount">0</strong>
+          <span>感兴趣</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="toolbar" aria-label="乐器筛选">
+      <label class="search-box">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input id="searchInput" type="search" placeholder="找一种乐器或一种声音" aria-label="搜索乐器">
+      </label>
+      <div class="segments" id="familyFilters" aria-label="按乐器家族筛选">
+        <button class="segment" type="button" data-family="全部" aria-pressed="true">全部</button>
+        <button class="segment" type="button" data-family="木管" aria-pressed="false">木管</button>
+        <button class="segment" type="button" data-family="铜管" aria-pressed="false">铜管</button>
+        <button class="segment" type="button" data-family="打击" aria-pressed="false">打击</button>
+        <button class="segment" type="button" data-family="弦乐" aria-pressed="false">弦乐</button>
+      </div>
+      <label class="favorite-filter">
+        <input id="favoriteOnly" type="checkbox">
+        <span>只看感兴趣</span>
+      </label>
+    </section>
+
+    <div class="result-line">
+      <span><strong id="resultCount">12</strong> 种乐器</span>
+      <span>图片可帮助辨认外形</span>
+    </div>
+
+    <section class="grid" id="instrumentGrid" aria-live="polite"></section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>视频优先选自哔哩哔哩；“独奏”包含钢琴或乐团伴奏下的主奏。</span>
+      <span>兴趣记录只保存在当前浏览器中。</span>
+    </div>
+  </footer>
+
+  <div class="modal" id="videoModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <div class="modal-controls">
+          <a class="modal-link" id="modalExternal" href="#" target="_blank" rel="noopener" title="在哔哩哔哩打开" aria-label="在哔哩哔哩打开">
+            <i data-lucide="external-link" aria-hidden="true"></i>
+          </a>
+          <button class="modal-close" id="modalClose" type="button" title="关闭视频" aria-label="关闭视频">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <div class="video-frame" id="videoFrame"></div>
+    </div>
+  </div>
+
+  <script>
+    const instruments = [
+      {
+        id: "flute", name: "长笛", english: "Flute", family: "木管",
+        timbre: "像一束会飞的光，清亮、灵巧，高音尤其闪耀。",
+        tags: ["清亮", "轻盈", "高音"], bvid: "BV1XK411F7of",
+        videoTitle: "《阳光灿烂照天山》长笛独奏",
+        image: "https://pngimg.com/uploads/flute/flute_PNG13.png",
+        cover: "https://i2.hdslb.com/bfs/archive/f525ca9fb2fd86e606b3ae366cc664fd555c839c.jpg@1200w_630h",
+        imageSource: "https://pngimg.com/image/56639"
+      },
+      {
+        id: "clarinet", name: "单簧管", english: "Clarinet", family: "木管",
+        timbre: "声音圆润又会变化，低音温暖，高音明亮，像在讲故事。",
+        tags: ["圆润", "温暖", "变化多"], bvid: "BV1d7411n7TX",
+        videoTitle: "《One Summer's Day》单簧管独奏",
+        image: "https://images.rawpixel.com/dark_image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI2LTA0L3NyLWltYWdlLTE1MDQyNi1ibTAwNi1zLTA2OC1tb2t2dzJnNy5wbmc.png",
+        cover: "https://i1.hdslb.com/bfs/archive/ea15409a575c11aa54fe09ae13ec66cfec1bf937.jpg@1200w_630h",
+        imageSource: "https://www.rawpixel.com/search/clarinet%20transparent"
+      },
+      {
+        id: "saxophone", name: "萨克斯", english: "Saxophone", family: "木管",
+        timbre: "既能柔软地歌唱，也能热烈地冲出来，很有个性。",
+        tags: ["热情", "有个性", "爵士感"], bvid: "BV1Fo4y1o7ET",
+        videoTitle: "《帕格尼尼第24随想曲》萨克斯独奏",
+        image: "https://www.pngfind.com/pngs/m/43-434208_saxophone-png-image-background-alto-saxophone-transparent-png.png",
+        cover: "https://i0.hdslb.com/bfs/archive/472820454b70f3f76886187759da44bce8b4b317.jpg@1200w_630h",
+        imageSource: "https://www.pngfind.com/mpng/hxwxmJ_saxophone-png-image-background-alto-saxophone-transparent-png/"
+      },
+      {
+        id: "trumpet", name: "小号", english: "Trumpet", family: "铜管",
+        timbre: "明亮、响亮、有穿透力，像庆典开场时的金色声音。",
+        tags: ["嘹亮", "明快", "有力量"], bvid: "BV1zE411D7aN",
+        videoTitle: "《我和我的祖国》小号独奏",
+        image: "https://images.rawpixel.com/dark_image_png_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI2LTA0L3NyLWltYWdlLTE1MDQyNi1ibTAwMy1zLTMxMC5wbmc.png",
+        cover: "https://i0.hdslb.com/bfs/archive/710fd08670297e8a9a1cebddbe78f6c91a490b5c.jpg@1200w_630h",
+        imageSource: "https://www.rawpixel.com/image/27200934/png-golden-trumpet-isolated-white-background"
+      },
+      {
+        id: "horn", name: "圆号", english: "French Horn", family: "铜管",
+        timbre: "宽广、温柔又有距离感，像从山谷另一边传来的声音。",
+        tags: ["温暖", "宽广", "电影感"], bvid: "BV1Mi4y1f7Us",
+        videoTitle: "莫扎特《D大调第一圆号协奏曲》",
+        image: "https://w7.pngwing.com/pngs/827/779/png-transparent-french-horns-musical-instruments-brass-instruments-trumpet-trombone-brass-instrument-musical-ensemble-orchestra.png",
+        cover: "https://i1.hdslb.com/bfs/archive/f85336fb02b945a62fa973e3114be878fd754759.jpg@1200w_630h",
+        imageSource: "https://www.pngwing.com/en/free-png-zoqoe"
+      },
+      {
+        id: "trombone", name: "长号", english: "Trombone", family: "铜管",
+        timbre: "音色厚实，可以用长长的拉管做出滑动的音高。",
+        tags: ["厚实", "滑音", "雄壮"], bvid: "BV1ku4y1x7mm",
+        videoTitle: "《嘎达梅林》长号与钢琴",
+        image: "https://pngimg.com/d/trombone_PNG6.png",
+        cover: "https://i0.hdslb.com/bfs/archive/b83fbb4aa75faef4ba7bcc644015869e65cf4cc7.jpg@1200w_630h",
+        imageSource: "https://pngimg.com/image/33078"
+      },
+      {
+        id: "euphonium", name: "次中音号", english: "Euphonium", family: "铜管",
+        timbre: "学校乐团里也常叫上低音号；比大号轻巧，声音柔和得像在唱歌。",
+        tags: ["柔和", "歌唱感", "中低音"], bvid: "BV16a411c7su",
+        videoTitle: "《Sound! Euphonium》上低音号独奏",
+        image: "https://cdn.imgbin.com/15/23/7/imgbin-euphonium-baritone-horn-brass-instruments-musical-instruments-trumpet-musical-instruments-VkdpqqmQuBtn5yFd6rqifrDka.jpg",
+        cover: "https://i2.hdslb.com/bfs/archive/654017e0c5bc00749bb0145d82932e010332eb85.jpg@1200w_630h",
+        imageSource: "https://imgbin.com/png/rxcjq4Nk/euphonium-baritone-horn-brass-instruments-musical-instruments-trumpet-png"
+      },
+      {
+        id: "tuba", name: "大号", english: "Tuba", family: "铜管",
+        timbre: "铜管家族里的低音巨人，声音深、厚、稳，也可以很活泼。",
+        tags: ["低沉", "厚重", "稳稳的"], bvid: "BV1va4y1Y7Dn",
+        videoTitle: "F大调奏鸣曲：大号独奏",
+        image: "https://www.vhv.rs/dpng/d/198-1983848_miraphone-91b-miraphone-bbb-tuba-hd-png-download.png",
+        cover: "https://i2.hdslb.com/bfs/archive/2a52304d439dfd40ae2f57aef8323eaa8521ab94.jpg@1200w_630h",
+        imageSource: "https://www.vhv.rs/viewpic/ihomoTT_miraphone-91b-miraphone-bbb-tuba-hd-png-download/"
+      },
+      {
+        id: "percussion", name: "打击乐", english: "Percussion", family: "打击",
+        timbre: "这是一个大家族；先用能演奏旋律的马林巴感受木质、跳跃的声音。",
+        tags: ["节奏", "颗粒感", "马林巴代表"], bvid: "BV15E411y7Hx",
+        videoTitle: "《Marimba Symphony》马林巴独奏",
+        image: "https://es.yamaha.com/es/files/ym-5104a_540x540_tcm121-1739531.jpg?imhei=600&impolicy=large&imwid=600",
+        cover: "https://i1.hdslb.com/bfs/archive/0b105308482cd6a6e5becd943d418aed71bc4a7a.jpg@1200w_630h",
+        imageSource: "https://es.yamaha.com/es/musical-instruments/percussion/products/marimbas/"
+      },
+      {
+        id: "oboe", name: "双簧管", english: "Oboe", family: "木管",
+        timbre: "细细的双簧片带来明亮又略带鼻音的声音，很会表达情绪。",
+        tags: ["清澈", "鼻音", "会歌唱"], bvid: "BV1LZ4y1w7sk",
+        videoTitle: "亨德尔D大调奏鸣曲：双簧管独奏",
+        image: "https://www.vhv.rs/dpng/d/50-501134_strumenti-a-fiato-oboe-hd-png-download.png",
+        cover: "https://i0.hdslb.com/bfs/archive/879b17ad8163c449833f6d5e97a7c7a9e1a5fa53.jpg@1200w_630h",
+        imageSource: "https://www.vhv.rs/viewpic/Twoiii_strumenti-a-fiato-oboe-hd-png-download/"
+      },
+      {
+        id: "bassoon", name: "巴松", english: "Bassoon", family: "木管",
+        timbre: "木管家族的低音成员，深沉、温暖，有时还带一点幽默感。",
+        tags: ["深沉", "温暖", "有趣"], bvid: "BV1Bu411f7aG",
+        videoTitle: "维瓦尔第G小调巴松管协奏曲",
+        image: "https://pngimg.com/uploads/flute/flute_PNG46.png",
+        cover: "https://i2.hdslb.com/bfs/archive/ebead91647a44e9c912a3a48b17c6420170d686c.jpg@1200w_630h",
+        imageSource: "https://pngimg.com/download/56672"
+      },
+      {
+        id: "double-bass", name: "低音提琴", english: "Double Bass", family: "弦乐",
+        timbre: "弦乐家族里体型最大、声音最低的成员，像音乐的地基。",
+        tags: ["低沉", "木质感", "有共鸣"], bvid: "BV1Nf4y117XR",
+        videoTitle: "万哈尔与库塞维兹基协奏曲：低音提琴独奏",
+        image: "https://www.vhv.rs/dpng/d/236-2366745_double-bass-bass-guitar-string-instruments-electric-palatino.png",
+        cover: "https://i2.hdslb.com/bfs/archive/cdb292610bf9b8c62684b869380bc3870a0ee04b.jpg@1200w_630h",
+        imageSource: "https://www.vhv.rs/viewpic/ibxoTJh_double-bass-bass-guitar-string-instruments-electric-palatino/"
+      }
+    ];
+
+    const state = {
+      family: "全部",
+      query: "",
+      favoriteOnly: false,
+      favorites: new Set(JSON.parse(localStorage.getItem("instrumentFavorites") || "[]")),
+      listened: new Set(JSON.parse(localStorage.getItem("instrumentListened") || "[]"))
+    };
+
+    const grid = document.getElementById("instrumentGrid");
+    const resultCount = document.getElementById("resultCount");
+    const listenedCount = document.getElementById("listenedCount");
+    const favoriteCount = document.getElementById("favoriteCount");
+    const modal = document.getElementById("videoModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalExternal = document.getElementById("modalExternal");
+    const videoFrame = document.getElementById("videoFrame");
+
+    function saveState() {
+      localStorage.setItem("instrumentFavorites", JSON.stringify([...state.favorites]));
+      localStorage.setItem("instrumentListened", JSON.stringify([...state.listened]));
+    }
+
+    function updateCounts() {
+      listenedCount.textContent = `${state.listened.size}/12`;
+      favoriteCount.textContent = state.favorites.size;
+    }
+
+    function matches(instrument) {
+      const familyMatch = state.family === "全部" || instrument.family === state.family;
+      const favoriteMatch = !state.favoriteOnly || state.favorites.has(instrument.id);
+      const haystack = [instrument.name, instrument.english, instrument.family, instrument.timbre, ...instrument.tags].join(" ").toLowerCase();
+      return familyMatch && favoriteMatch && haystack.includes(state.query.toLowerCase());
+    }
+
+    function render() {
+      const shown = instruments.filter(matches);
+      resultCount.textContent = shown.length;
+
+      if (!shown.length) {
+        grid.innerHTML = `<div class="empty-state"><div><strong>没有找到相符的乐器</strong><br><span>换一个关键词或筛选条件试试</span></div></div>`;
+        updateCounts();
+        return;
+      }
+
+      grid.innerHTML = shown.map(instrument => {
+        const isFavorite = state.favorites.has(instrument.id);
+        const isListened = state.listened.has(instrument.id);
+        return `
+          <article class="instrument-card ${isListened ? "is-listened" : ""}" data-id="${instrument.id}">
+            <div class="image-wrap">
+              <img src="${instrument.image}" data-fallback="${instrument.cover}" alt="${instrument.name}的外形" loading="lazy" referrerpolicy="no-referrer">
+              <div class="image-fallback">${instrument.name}</div>
+              <span class="family-badge">${instrument.family}</span>
+              <button class="favorite-button ${isFavorite ? "is-favorite" : ""}" type="button"
+                data-action="favorite" data-id="${instrument.id}"
+                aria-pressed="${isFavorite}" aria-label="${isFavorite ? "取消感兴趣" : "标记为感兴趣"}：${instrument.name}"
+                title="${isFavorite ? "取消感兴趣" : "感兴趣"}">
+                <i data-lucide="heart" ${isFavorite ? 'fill="currentColor"' : ""} aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="title-row">
+                <h2>${instrument.name}</h2>
+                <span class="english-name">${instrument.english}</span>
+              </div>
+              <p class="timbre">${instrument.timbre}</p>
+              <div class="sound-tags">${instrument.tags.map(tag => `<span class="sound-tag">${tag}</span>`).join("")}</div>
+              <div class="card-actions">
+                <button class="play-button" type="button" data-action="play" data-id="${instrument.id}">
+                  <i data-lucide="play" fill="currentColor" aria-hidden="true"></i>
+                  <span>听一听</span>
+                </button>
+                <a class="source-button" href="${instrument.imageSource}" target="_blank" rel="noopener" title="查看图片来源" aria-label="查看${instrument.name}图片来源">
+                  <i data-lucide="image" aria-hidden="true"></i>
+                </a>
+              </div>
+              <div class="listened-mark"><i data-lucide="check-circle-2" aria-hidden="true"></i> 已试听</div>
+            </div>
+          </article>`;
+      }).join("");
+
+      grid.querySelectorAll("img").forEach(img => {
+        img.addEventListener("error", () => {
+          if (!img.dataset.fallbackTried) {
+            img.dataset.fallbackTried = "true";
+            img.src = img.dataset.fallback;
+            img.style.objectFit = "cover";
+            img.style.padding = "0";
+            return;
+          }
+          img.style.display = "none";
+          img.nextElementSibling.style.display = "grid";
+        });
+      });
+
+      if (window.lucide) lucide.createIcons();
+      updateCounts();
+    }
+
+    function toggleFavorite(id) {
+      if (state.favorites.has(id)) state.favorites.delete(id);
+      else state.favorites.add(id);
+      saveState();
+      render();
+    }
+
+    function openVideo(id) {
+      const instrument = instruments.find(item => item.id === id);
+      if (!instrument) return;
+      state.listened.add(id);
+      saveState();
+      modalTitle.textContent = `${instrument.name} · ${instrument.videoTitle}`;
+      modalExternal.href = `https://www.bilibili.com/video/${instrument.bvid}/`;
+      videoFrame.innerHTML = `<iframe src="https://player.bilibili.com/player.html?bvid=${instrument.bvid}&page=1&high_quality=1&danmaku=0&autoplay=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${instrument.videoTitle}"></iframe>`;
+      modal.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+      render();
+      document.getElementById("modalClose").focus();
+    }
+
+    function closeVideo() {
+      modal.classList.remove("is-open");
+      videoFrame.innerHTML = "";
+      document.body.style.overflow = "";
+    }
+
+    grid.addEventListener("click", event => {
+      const target = event.target.closest("[data-action]");
+      if (!target) return;
+      if (target.dataset.action === "favorite") toggleFavorite(target.dataset.id);
+      if (target.dataset.action === "play") openVideo(target.dataset.id);
+    });
+
+    document.getElementById("searchInput").addEventListener("input", event => {
+      state.query = event.target.value.trim();
+      render();
+    });
+
+    document.getElementById("favoriteOnly").addEventListener("change", event => {
+      state.favoriteOnly = event.target.checked;
+      render();
+    });
+
+    document.getElementById("familyFilters").addEventListener("click", event => {
+      const button = event.target.closest("[data-family]");
+      if (!button) return;
+      state.family = button.dataset.family;
+      document.querySelectorAll("[data-family]").forEach(item => {
+        item.setAttribute("aria-pressed", String(item === button));
+      });
+      render();
+    });
+
+    document.getElementById("modalClose").addEventListener("click", closeVideo);
+    modal.addEventListener("click", event => { if (event.target === modal) closeVideo(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape" && modal.classList.contains("is-open")) closeVideo(); });
+
+    render();
+  </script>
+</body>
+</html>
